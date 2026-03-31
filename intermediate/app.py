@@ -27,10 +27,14 @@ def get_local_ip():
         return '127.0.0.1'
 
 from apscheduler.schedulers.background import BackgroundScheduler
-from database import init_db, get_db_connection
-from ai_quiz import generate_daily_quiz, evaluate_winner
-from notifier import send_winner_notification, send_participation_email
-from export_excel import generate_excel_report
+# from database import init_db, get_db_connection
+# from ai_quiz import generate_daily_quiz, evaluate_winner
+# from notifier import send_winner_notification, send_participation_email
+# from export_excel import generate_excel_report
+from intermediate.database import init_db, get_db_connection
+from intermediate.ai_quiz import generate_daily_quiz, evaluate_winner
+from intermediate.notifier import send_winner_notification, send_participation_email
+from intermediate.export_excel import generate_excel_report
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'

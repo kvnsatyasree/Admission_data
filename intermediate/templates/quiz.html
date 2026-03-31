@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="glass-panel glass-panel-large" style="margin-top: 2rem;">
+    <h2>Daily AI Challenge</h2>
+    <p>Read the puzzle carefully and provide your best logical answer.</p>
+
+    <!-- JS Timer -->
+    <div class="timer" id="timer_display">05:00</div>
+    
+    <form id="quizForm" method="POST" action="{{ url_for('take_quiz') }}">
+        <!-- Hidden input to store time taken in seconds -->
+        <input type="hidden" name="time_taken" id="time_taken" value="0">
+        
+        {% for q in questions %}
+        <div class="question-card">
+            <!-- Replacing specific H3 tag layout since question is multi-line string with markdown linebreaks from Ollama -->
+            <pre style="font-family: inherit; font-size: 1.1rem; white-space: pre-wrap; color: #f8fafc; margin-bottom: 2rem;">{{ q['question'] }}</pre>
+            
+            <div class="form-group" style="margin-top: 1rem;">
+                <label for="answer_text" style="font-size: 1.1rem; color: #60a5fa;">Your Logical Answer:</label>
+                <textarea id="answer_text" name="answer_text" rows="4" required style="width: 100%; padding: 1rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: white; font-size: 1rem; resize: vertical;"></textarea>
+            </div>
+        </div>
+        {% endfor %}
+
+        <button type="submit" class="btn" style="background: linear-gradient(135deg, #10b981, #059669);">Submit Answer for Evaluation</button>
+    </form>
+</div>
+
+<!-- Timer Logic -->
+<script>
+    let secondsElapsed = 0;
+    const TOTAL_SECONDS = 300; // 5 minute limit for display
+    const timerDisplay = document.getElementById('timer_display');
+    const timeTakenInput = document.getElementById('time_taken');
+    const quizForm = document.getElementById('quizForm');
+
+    const updateTimerDisplay = () => {
+        let remaining = Math.max(0, TOTAL_SECONDS - secondsElapsed);
+        let minutes = Math.floor(remaining / 60);
+        let seconds = remaining % 60;
+        
+        timerDisplay.innerText = 
+            (minutes < 10 ? '0' : '') + minutes + ':' + 
+            (seconds < 10 ? '0' : '') + seconds;
+            
+        // Urgent color
+        if(remaining <= 60) {
+            timerDisplay.style.color = '#ef4444'; 
+        }
+    };
+
+    const interval = setInterval(() => {
+        secondsElapsed++;
+        timeTakenInput.value = secondsElapsed;
+        updateTimerDisplay();
+        
+        if(secondsElapsed >= TOTAL_SECONDS) {
+            clearInterval(interval);
+            alert("Time limit reached! Submitting automatically.");
+            quizForm.submit();
+        }
+    }, 1000);
+</script>
+{% endblock %}

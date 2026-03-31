@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="glass-panel text-center" style="text-align: center;">
+    <h2 style="font-size: 2rem; margin-bottom: 1rem;">Scan to Access KIET Portal</h2>
+    <div style="background: white; padding: 20px; display: inline-block; border-radius: 15px; margin-bottom: 1.5rem;">
+        <img src="data:image/png;base64,{{ qr_image }}" alt="QR Code" style="max-width: 100%; height: auto; display: block;"/>
+    </div>
+    <p style="margin-bottom: 2rem;">Scan the QR code above with any mobile device to directly open the KIET AI Student Quiz Hub.</p>
+    
+    <a href="{{ portal_url }}" class="btn btn-secondary" style="max-width: 300px;">Go to Portal</a>
+</div>
+{% endblock %}

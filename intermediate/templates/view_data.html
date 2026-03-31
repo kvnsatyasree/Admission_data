@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="glass-panel glass-panel-large" style="margin-top: 2rem; border-color: #3b82f6; max-width: 1200px;">
+    <!-- Header -->
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 1rem; margin-bottom: 2rem;">
+        <h2 style="margin: 0; text-align: left; background: none; -webkit-text-fill-color: #3b82f6; color: #3b82f6;">📊 Data Viewer</h2>
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary" style="width: auto; margin: 0; padding: 0.5rem 1.2rem;">← Back to Dashboard</a>
+    </div>
+
+    <!-- Tabs -->
+    <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem;">
+        <button id="tab-students" onclick="showTab('students')"
+            style="padding: 0.6rem 1.4rem; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; font-size: 0.95rem; transition: all 0.2s; background: #3b82f6; color: white;">
+            🎓 Students ({{ students|length }})
+        </button>
+        <button id="tab-attempts" onclick="showTab('attempts')"
+            style="padding: 0.6rem 1.4rem; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; font-size: 0.95rem; transition: all 0.2s; background: rgba(255,255,255,0.08); color: #cbd5e1;">
+            📝 Quiz Attempts ({{ attempts|length }})
+        </button>
+    </div>
+
+    <!-- Search Bar -->
+    <div style="margin-bottom: 1.2rem;">
+        <input type="text" id="search-input" oninput="filterTable()" placeholder="🔍  Search..." 
+            style="width: 100%; padding: 0.8rem 1rem; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.05); color: white; font-size: 0.95rem; box-sizing: border-box;">
+    </div>
+
+    <!-- Students Table -->
+    <div id="pane-students">
+        <div style="overflow-x: auto; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08);">
+            <table id="tbl-students" style="width: 100%; border-collapse: collapse; font-size: 0.88rem;">
+                <thead>
+                    <tr style="background: rgba(59,130,246,0.2);">
+                        <th style="padding: 0.9rem 1rem; text-align: left; color: #93c5fd; border-bottom: 1px solid rgba(255,255,255,0.1);">#</th>
+                        <th style="padding: 0.9rem 1rem; text-align: left; color: #93c5fd; border-bottom: 1px solid rgba(255,255,255,0.1);">Name</th>
+                        <th style="padding: 0.9rem 1rem; text-align: left; color: #93c5fd; border-bottom: 1px solid rgba(255,255,255,0.1);">Phone</th>
+                        <th style="padding: 0.9rem 1rem; text-align: left; color: #93c5fd; border-bottom: 1px solid rgba(255,255,255,0.1);">Father's Name</th>
+                        <th style="padding: 0.9rem 1rem; text-align: left; color: #93c5fd; border-bottom: 1px solid rgba(255,255,255,0.1);">Father's Phone</th>
+                        <th style="padding: 0.9rem 1rem; text-align: left; color: #93c5fd; border-bottom: 1px solid rgba(255,255,255,0.1);">College</th>
+                        <th style="padding: 0.9rem 1rem; text-align: left; color: #93c5fd; border-bottom: 1px solid rgba(255,255,255,0.1);">School</th>
+                        <th style="padding: 0.9rem 1rem; text-align: left; color: #93c5fd; border-bottom: 1px solid rgba(255,255,255,0.1);">EAMCET Reg</th>
+                        <th style="padding: 0.9rem 1rem; text-align: left; color: #93c5fd; border-bottom: 1px solid rgba(255,255,255,0.1);">Email</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in students %}
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.15s;"
+                        onmouseover="this.style.background='rgba(59,130,246,0.08)'"
+                        onmouseout="this.style.background='transparent'">
+                        <td style="padding: 0.8rem 1rem; color: #64748b;">{{ loop.index }}</td>
+                        <td style="padding: 0.8rem 1rem; font-weight: 600; color: #f8fafc;">{{ s.name }}</td>
+                        <td style="padding: 0.8rem 1rem; color: #cbd5e1;">{{ s.phone }}</td>
+                        <td style="padding: 0.8rem 1rem; color: #cbd5e1;">{{ s.father_name }}</td>
+                        <td style="padding: 0.8rem 1rem; color: #cbd5e1;">{{ s.father_phone }}</td>
+                        <td style="padding: 0.8rem 1rem;">
+                            <span style="background: rgba(99,102,241,0.2); color: #a5b4fc; border-radius: 20px; padding: 0.2rem 0.7rem; font-size: 0.82rem; white-space: nowrap;">{{ s.inter_college or s.college_location }}</span>
+                        </td>
+                        <td style="padding: 0.8rem 1rem; color: #cbd5e1;">{{ s.school }}</td>
+                        <td style="padding: 0.8rem 1rem; color: #fcd34d; font-family: monospace;">{{ s.eamcet_reg }}</td>
+                        <td style="padding: 0.8rem 1rem; color: #94a3b8; font-size: 0.82rem;">{{ s.email }}</td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="9" style="padding: 2rem; text-align: center; color: #64748b;">No students registered yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Attempts Table -->
+    <div id="pane-attempts" style="display: none;">
+        <div style="overflow-x: auto; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08);">
+            <table id="tbl-attempts" style="width: 100%; border-collapse: collapse; font-size: 0.88rem;">
+                <thead>
+                    <tr style="background: rgba(139,92,246,0.2);">
+                        <th style="padding: 0.9rem 1rem; text-align: left; color: #c4b5fd; border-bottom: 1px solid rgba(255,255,255,0.1);">#</th>
+                        <th style="padding: 0.9rem 1rem; text-align: left; color: #c4b5fd; border-bottom: 1px solid rgba(255,255,255,0.1);">Student Name</th>
+                        <th style="padding: 0.9rem 1rem; text-align: left; color: #c4b5fd; border-bottom: 1px solid rgba(255,255,255,0.1);">Quiz Date</th>
+                        <th style="padding: 0.9rem 1rem; text-align: left; color: #c4b5fd; border-bottom: 1px solid rgba(255,255,255,0.1);">Answer Submitted</th>
+                        <th style="padding: 0.9rem 1rem; text-align: left; color: #c4b5fd; border-bottom: 1px solid rgba(255,255,255,0.1);">Time Taken</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for a in attempts %}
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.15s;"
+                        onmouseover="this.style.background='rgba(139,92,246,0.08)'"
+                        onmouseout="this.style.background='transparent'">
+                        <td style="padding: 0.8rem 1rem; color: #64748b;">{{ loop.index }}</td>
+                        <td style="padding: 0.8rem 1rem; font-weight: 600; color: #f8fafc;">{{ a.name }}</td>
+                        <td style="padding: 0.8rem 1rem;">
+                            <span style="background: rgba(245,158,11,0.15); color: #fcd34d; border-radius: 20px; padding: 0.2rem 0.7rem; font-size: 0.82rem;">{{ a.date }}</span>
+                        </td>
+                        <td style="padding: 0.8rem 1rem; color: #a7f3d0; max-width: 400px; word-wrap: break-word;">{{ a.answer_text }}</td>
+                        <td style="padding: 0.8rem 1rem;">
+                            <span style="background: rgba(59,130,246,0.15); color: #93c5fd; border-radius: 20px; padding: 0.2rem 0.7rem; font-size: 0.82rem;">⏱ {{ a.time_taken }}s</span>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="5" style="padding: 2rem; text-align: center; color: #64748b;">No quiz attempts yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Footer count -->
+    <p style="text-align: right; color: #475569; font-size: 0.8rem; margin-top: 1rem; margin-bottom: 0;" id="row-count"></p>
+</div>
+
+<script>
+    let activeTab = 'students';
+
+    function showTab(tab) {
+        activeTab = tab;
+        document.getElementById('pane-students').style.display = tab === 'students' ? 'block' : 'none';
+        document.getElementById('pane-attempts').style.display = tab === 'attempts' ? 'block' : 'none';
+        document.getElementById('tab-students').style.background = tab === 'students' ? '#3b82f6' : 'rgba(255,255,255,0.08)';
+        document.getElementById('tab-students').style.color = tab === 'students' ? 'white' : '#cbd5e1';
+        document.getElementById('tab-attempts').style.background = tab === 'attempts' ? '#8b5cf6' : 'rgba(255,255,255,0.08)';
+        document.getElementById('tab-attempts').style.color = tab === 'attempts' ? 'white' : '#cbd5e1';
+        document.getElementById('search-input').value = '';
+        updateCount();
+    }
+
+    function filterTable() {
+        const q = document.getElementById('search-input').value.toLowerCase();
+        const tblId = activeTab === 'students' ? 'tbl-students' : 'tbl-attempts';
+        const rows = document.querySelectorAll(`#${tblId} tbody tr`);
+        let visible = 0;
+        rows.forEach(row => {
+            const match = row.textContent.toLowerCase().includes(q);
+            row.style.display = match ? '' : 'none';
+            if (match) visible++;
+        });
+        document.getElementById('row-count').textContent = `Showing ${visible} record(s)`;
+    }
+
+    function updateCount() {
+        const tblId = activeTab === 'students' ? 'tbl-students' : 'tbl-attempts';
+        const rows = document.querySelectorAll(`#${tblId} tbody tr`);
+        document.getElementById('row-count').textContent = `Showing ${rows.length} record(s)`;
+    }
+
+    updateCount();
+</script>
+{% endblock %}

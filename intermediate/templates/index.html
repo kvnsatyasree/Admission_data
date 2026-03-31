@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="glass-panel glass-panel-large text-center" style="text-align: center;">
+    <h1 style="font-size: 2.2rem; margin-bottom: 0.5rem;">Kakinada Institute of Engineering and Technology</h1>
+    <p>AI Student Quiz Hub</p>
+    
+    <!-- Central Video Player -->
+    <div style="position: relative; border-radius: 16px; margin: 1.5rem 0; box-shadow: 0 8px 30px rgba(0,0,0,0.6); border: 2px solid rgba(255,255,255,0.12); overflow: hidden; background: #000;">
+        <video id="kiet-video" 
+               style="width: 100%; display: block; max-height: 480px; object-fit: cover;"
+               autoplay muted loop playsinline controls
+               poster="">
+            <source src="{{ url_for('static', filename='videos/video.mp4') }}" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+        <!-- Unmute button overlay -->
+        <button id="unmute-btn" onclick="toggleMute()" 
+                style="position: absolute; bottom: 60px; right: 14px; background: rgba(0,0,0,0.65); color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 50px; padding: 6px 14px; font-size: 0.85rem; cursor: pointer; backdrop-filter: blur(6px); transition: all 0.2s;">
+            🔇 Tap to Unmute
+        </button>
+    </div>
+    <script>
+        function toggleMute() {
+            const video = document.getElementById('kiet-video');
+            const btn = document.getElementById('unmute-btn');
+            video.muted = !video.muted;
+            btn.textContent = video.muted ? '🔇 Tap to Unmute' : '🔊 Muted';
+        }
+    </script>
+    
+    <div class="btn-group">
+        <a href="{{ url_for('student_login') }}" class="btn">🔑 Login / Sign In</a>
+        <a href="https://www.kietgroup.com/" target="_blank" class="btn btn-secondary">🏫 About College</a>
+        
+        <div class="dropdown">
+            <button class="btn btn-secondary dropdown-btn" style="width: 100%;">🌐 Social Media ▼</button>
+            <div class="dropdown-content">
+                <a href="https://www.youtube.com/@kakinadakiet" target="_blank" class="social-btn youtube-btn">▶️ YouTube</a>
+                <a href="https://www.instagram.com/kiet.channel?igsh=bXJ0OGwwaWZ4enNv" target="_blank" class="social-btn instagram-btn">📸 Instagram</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

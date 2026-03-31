@@ -1,0 +1,49 @@
+# 🔹 Virtual Environment
+.venv/
+venv/
+env/
+
+# 🔹 Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# 🔹 Environment variables
+.env
+
+# 🔹 Flask / App files
+instance/
+*.sqlite3
+*.db
+
+# 🔹 Logs
+*.log
+
+# 🔹 OS files
+.DS_Store
+Thumbs.db
+
+# 🔹 IDE / Editor files
+.vscode/
+.idea/
+
+# 🔹 Build / distribution
+build/
+dist/
+*.egg-info/
+
+# 🔹 Temporary files
+*.tmp
+*.temp
+
+# 🔹 Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# 🔹 Gunicorn / deployment
+*.pid
+*.sock
+
+# 🔹 Uploaded files (optional - if you store uploads)
+uploads/
+static/uploads/

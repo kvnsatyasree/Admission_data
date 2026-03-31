@@ -1,0 +1,21 @@
+# Fly.io app configuration
+# Update the "app" name to your Fly app slug (fly apps create or fly launch will set it).
+app = "kiet-admin"
+
+[build]
+  dockerfile = "intermediate/Dockerfile"
+
+[env]
+  PORT = "8080"
+  DATABASE_PATH = "/data/quiz_app.db"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+
+[[mounts]]
+  source = "kiet_admin_data"
+  destination = "/data"

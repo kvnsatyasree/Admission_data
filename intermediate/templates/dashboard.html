@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="glass-panel glass-panel-large" style="margin-top: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 1rem; margin-bottom: 2rem;">
+        <h2 style="margin: 0; text-align: left;">Welcome, {{ student['name'] }}</h2>
+        <a href="{{ url_for('logout') }}" class="btn btn-secondary" style="width: auto; margin: 0; padding: 0.5rem 1rem;">Logout</a>
+    </div>
+
+    <!-- Actions Section -->
+    <div class="profile-grid">
+        <div class="profile-item text-center" style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3);">
+            <h3>🎯 Daily AI Assessment</h3>
+            {% if attempted_today %}
+                <p style="color: #a7f3d0; font-weight: bold; margin-bottom: 1rem;">✅ You have already completed today's quiz!</p>
+                <button disabled class="btn btn-secondary" style="opacity: 0.5; cursor: not-allowed;">Quiz Completed</button>
+            {% else %}
+                <p>Test your knowledge and compete for today's prize.</p>
+                <a href="{{ url_for('take_quiz') }}" class="btn" style="background: linear-gradient(135deg, #10b981, #059669);">Start Today's Quiz</a>
+            {% endif %}
+        </div>
+        
+        <div class="profile-item text-center">
+            <h3>🏫 About Our College</h3>
+            <p>Discover courses, campus life, and details about our institution.</p>
+            <a href="https://www.kietgroup.com/" target="_blank" class="btn btn-secondary" style="margin-top: 1rem;">Visit KIET Portal ↗</a>
+        </div>
+    </div>
+
+    <!-- Profile Data Readout -->
+    <h3 style="margin-top: 2rem; margin-bottom: 1rem; color: #93c5fd;">Your Student Profile</h3>
+    <div class="profile-grid">
+        <div class="profile-item">
+            <span>Name</span>
+            <strong>{{ student['name'] }}</strong>
+        </div>
+        <div class="profile-item">
+            <span>Email Address</span>
+            <strong>{{ student['email'] }}</strong>
+        </div>
+        <div class="profile-item">
+            <span>Phone Number</span>
+            <strong>{{ student['phone'] }}</strong>
+        </div>
+        <div class="profile-item">
+            <span>EAMCET / Hall Ticket</span>
+            <strong>{{ student['eamcet_reg'] }}</strong>
+        </div>
+        <div class="profile-item">
+            <span>Intermediate College</span>
+            <strong>{{ student['inter_college'] }}</strong>
+        </div>
+        <div class="profile-item">
+            <span>Father's Details</span>
+            <strong>{{ student['father_name'] }} ({{ student['father_phone'] }})</strong>
+        </div>
+        <div class="profile-item" style="grid-column: span 2;">
+            <span>Home Address</span>
+            <strong>{{ student['address'] }}</strong>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

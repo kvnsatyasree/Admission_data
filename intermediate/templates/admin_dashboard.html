@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="glass-panel glass-panel-large" style="margin-top: 2rem; border-color: #f59e0b;">
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 1rem; margin-bottom: 2rem;">
+        <h2 style="margin: 0; text-align: left; background: none; -webkit-text-fill-color: #f59e0b; color: #f59e0b;">Administrator Dashboard</h2>
+        <a href="{{ url_for('logout') }}" class="btn btn-secondary" style="width: auto; margin: 0; padding: 0.5rem 1rem;">End Session</a>
+    </div>
+
+    <!-- Stats Matrix -->
+    <div class="profile-grid" style="grid-template-columns: repeat(3, 1fr);">
+        <div class="profile-item text-center">
+            <span style="font-size: 1rem;">Data Export</span>
+            <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem; flex-wrap: wrap; justify-content: center;">
+                <a href="{{ url_for('download_excel') }}" class="btn" style="background: #10b981; padding: 0.8rem 1rem; width: auto; flex: 1; min-width: 120px;">📥 Download Excel</a>
+                <a href="{{ url_for('view_data') }}" class="btn" style="background: linear-gradient(135deg, #3b82f6, #6366f1); padding: 0.8rem 1rem; width: auto; flex: 1; min-width: 120px;">👁️ View Data</a>
+            </div>
+        </div>
+        
+        <div class="profile-item text-center">
+            <span style="font-size: 1rem;">Total Students</span>
+            <strong style="font-size: 2.5rem; color: #3b82f6;">{{ total_students }}</strong>
+        </div>
+        
+        <div class="profile-item text-center">
+            <span style="font-size: 1rem;">Total Attempts</span>
+            <strong style="font-size: 2.5rem; color: #8b5cf6;">{{ total_attempts }}</strong>
+        </div>
+    </div>
+
+    <!-- Leaderboard Logic -->
+    <h3 style="margin-top: 2rem; color: #f59e0b;">🏆 Today's Leaderboard Evaluation</h3>
+    <div class="profile-item" style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.4);">
+        {% if winner %}
+            <p style="text-align: left; margin: 0;">
+                <strong style="font-size: 1.5rem; color: white;">AI Selected Winner!</strong>
+                <br><br>
+                <span>Name: </span><strong style="color: white; margin-right: 1.5rem;">{{ winner['name'] }}</strong>
+                <span>Their Answer: </span><strong style="color: #a7f3d0; margin-right: 1.5rem;">{{ winner['answer_text'] }}</strong>
+                <span>Time: </span><strong style="color: #fcd34d;">{{ winner['time_taken'] }} sec</strong>
+            </p>
+            <form method="POST" action="{{ url_for('trigger_eval_manual') }}" style="margin-top: 1.5rem;">
+                <button type="submit" class="btn btn-secondary" style="border-color: #f59e0b;">Re-Trigger AI Evaluation</button>
+            </form>
+        {% else %}
+            <p style="text-align: left; margin: 0;">No attempts recorded today yet. Check back later.</p>
+        {% endif %}
+    </div>
+
+    <!-- Email Notification Section -->
+    <h3 style="margin-top: 2rem; color: #3b82f6;">📧 Email Winner Notification</h3>
+    <div class="profile-item" style="background: rgba(59,130,246,0.07); border: 1px solid rgba(59,130,246,0.35);">
+
+        {% if sms_status %}
+            <div style="padding: 0.8rem 1rem; border-radius: 8px; margin-bottom: 1rem; font-weight: 600; 
+                        background: {{ 'rgba(16,185,129,0.15)' if sms_success else 'rgba(239,68,68,0.15)' }}; 
+                        border: 1px solid {{ '#10b981' if sms_success else '#ef4444' }}; 
+                        color: {{ '#6ee7b7' if sms_success else '#fca5a5' }};">
+                {{ '✅' if sms_success else '❌' }} {{ sms_status }}
+            </div>
+        {% endif %}
+
+        <!-- Setup Guide -->
+        <div style="background: rgba(255,255,255,0.04); border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; border-left: 3px solid #3b82f6;">
+            <p style="margin: 0 0 0.6rem 0; font-weight: 700; color: #3b82f6; font-size: 0.95rem;">📋 Configuration Setup:</p>
+            <ol style="margin: 0; padding-left: 1.3rem; color: #94a3b8; font-size: 0.87rem; line-height: 1.9;">
+                <li>Add your <strong style="color:white;">SMTP Email Credentials</strong> in the <code style="background:rgba(255,255,255,0.1); padding:2px 6px; border-radius:4px; color:#a5f3fc;">.env</code> file (e.g. EMAIL_USER, EMAIL_PASS)</li>
+                <li>Restart the server — you're done! 🎉</li>
+            </ol>
+        </div>
+
+        <!-- Test Form -->
+        <p style="text-align: left; margin: 0 0 1rem 0; color: #94a3b8; font-size: 0.9rem;">
+            Send a test Congratulatory Email to verify the setup is working.
+        </p>
+        <form method="POST" action="{{ url_for('send_test_notifications') }}" style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: flex-end;">
+            <div style="flex: 1; min-width: 200px;">
+                <label style="display:block; font-size:0.82rem; color:#94a3b8; margin-bottom:0.4rem;">👤 Student Name</label>
+                <input type="text" name="test_name" placeholder="e.g. Test Student" value="Test Student" required
+                    style="width:100%; padding:0.75rem 1rem; border-radius:8px; border:1px solid rgba(255,255,255,0.15);
+                           background:rgba(255,255,255,0.05); color:white; font-size:1rem; box-sizing:border-box;">
+            </div>
+            <div style="flex: 1; min-width: 200px;">
+                <label style="display:block; font-size:0.82rem; color:#94a3b8; margin-bottom:0.4rem;">📧 Test Email</label>
+                <input type="email" name="test_email" placeholder="e.g. winner@gmail.com" required
+                    style="width:100%; padding:0.75rem 1rem; border-radius:8px; border:1px solid rgba(255,255,255,0.15);
+                           background:rgba(255,255,255,0.05); color:white; font-size:1rem; box-sizing:border-box;">
+            </div>
+            <button type="submit" class="btn" style="background: linear-gradient(135deg,#3b82f6,#2563eb); width:auto; padding:0.75rem 1.5rem; flex-shrink:0;">
+                🚀 Dispatch Test
+            </button>
+        </form>
+        <p style="text-align:left; margin: 1rem 0 0 0; color: #475569; font-size:0.8rem;">
+            The student gets a professional congratulatory email with performance metrics. 🏆
+        </p>
+    </div>
+</div>
+{% endblock %}

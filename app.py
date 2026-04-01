@@ -360,7 +360,7 @@ def open_browser():
 
 if __name__ == '__main__':
     # Start a timer to open the browser after the server is up (1.5s delay)
-    Timer(1.5, open_browser).start()
-    
+    # Timer(1.5, open_browser).start()
+    pass
     # Host on 0.0.0.0 to securely expose port 5000 to the Local Area Network (Wi-Fi)
-    app.run(host='0.0.0.0', debug=True, port=5000, use_reloader=False) # Important: Turn off reloader when using APScheduler to prevent double-firing jobs
+    # app.run(host='0.0.0.0', debug=True, port=5000, use_reloader=False) # Important: Turn off reloader when using APScheduler to prevent double-firing jobs

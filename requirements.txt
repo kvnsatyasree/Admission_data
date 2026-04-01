@@ -1,4 +1,5 @@
 Flask==3.0.3
+<<<<<<< HEAD
 Flask-WTF==1.2.1
 Werkzeug==3.0.3
 huggingface_hub==0.27.0
@@ -9,3 +10,15 @@ qrcode[pil]==7.4.2
 gunicorn==21.2.0
 # Optional: Turso/libsql client (requires Rust toolchain on Windows)
 # libsql-experimental==0.0.55
+=======
+Werkzeug==3.0.3
+ollama==0.2.1
+openpyxl==3.1.2
+twilio==9.0.4
+python-dotenv==1.0.1
+APScheduler==3.10.4
+qrcode[pil]==7.4.2
+requests==2.32.3
+gunicorn==21.2.0
+libsql-experimental==0.0.55
+>>>>>>> 49cdb1436f381c824d0396e18a0dd0e246da4056

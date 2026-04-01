@@ -9,12 +9,13 @@
     <div class="timer" id="timer_display">05:00</div>
     
     <form id="quizForm" method="POST" action="{{ url_for('take_quiz') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <!-- Hidden input to store time taken in seconds -->
         <input type="hidden" name="time_taken" id="time_taken" value="0">
         
         {% for q in questions %}
         <div class="question-card">
-            <!-- Replacing specific H3 tag layout since question is multi-line string with markdown linebreaks from Ollama -->
+            <!-- Question is a multi-line string with line breaks from the AI model -->
             <pre style="font-family: inherit; font-size: 1.1rem; white-space: pre-wrap; color: #f8fafc; margin-bottom: 2rem;">{{ q['question'] }}</pre>
             
             <div class="form-group" style="margin-top: 1rem;">

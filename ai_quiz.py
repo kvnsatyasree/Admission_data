@@ -1,4 +1,3 @@
-from huggingface_hub import InferenceClient
 import json
 import logging
 import os
@@ -7,14 +6,30 @@ from dotenv import load_dotenv
 load_dotenv()
 HF_TOKEN = os.getenv("HUGGINGFACE_API_KEY")
 
-# Hugging Face provides excellent serverless API access for small tasks
-client = InferenceClient(model="HuggingFaceH4/zephyr-7b-beta", token=HF_TOKEN)
-
 logging.basicConfig(level=logging.INFO)
+
+_client = None
+
+
+def get_client():
+    """Lazily create and cache the Hugging Face InferenceClient."""
+    global _client
+    if _client is None:
+        try:
+            from huggingface_hub import InferenceClient
+        except Exception as e:  # pragma: no cover
+            logging.error(f"Failed to import huggingface_hub InferenceClient: {e}")
+            raise
+
+        if not HF_TOKEN:
+            logging.warning("HUGGINGFACE_API_KEY not set; AI quiz will use fallback questions only.")
+
+        _client = InferenceClient(model="HuggingFaceH4/zephyr-7b-beta", token=HF_TOKEN)
+    return _client
 
 def generate_daily_quiz() -> list:
     """
-    Communicates with local Ollama to generate 1 daily tricky logic/riddle question in a specific format.
+    Uses Hugging Face Inference API to generate 1 daily tricky logic/riddle question in a specific format.
     Returns a list of dictionaries with 'question' and 'answer_key' (no multiple choice options).
     """
     prompt = '''
@@ -39,6 +54,7 @@ def generate_daily_quiz() -> list:
     '''
     
     try:
+        client = get_client()
         messages = [{"role": "user", "content": prompt}]
         response = client.chat_completion(messages=messages, max_tokens=800)
         reply = response.choices[0].message.content.strip()
@@ -86,7 +102,7 @@ def generate_daily_quiz() -> list:
 def evaluate_winner(quiz_data: dict, attempts: list) -> int:
     """
     Takes the quiz question data and a list of attempt dictionaries: [{'id': 1, 'student_id': 5, 'answer_text': '...', 'time_taken': 120}, ...]
-    Asks Ollama to determine the best valid answer. If multiple are correct, picks the fastest.
+    Asks the Hugging Face model to determine the best valid answer. If multiple are correct, picks the fastest.
     Returns the student_id of the winner. Returns None if no valid answers.
     """
     if not attempts:
@@ -110,6 +126,7 @@ def evaluate_winner(quiz_data: dict, attempts: list) -> int:
         prompt += f"\n- Student ID: {att['student_id']}, Answer: '{att['answer_text']}', Time Taken: {att['time_taken']} seconds"
         
     try:
+        client = get_client()
         messages = [{"role": "user", "content": prompt}]
         response = client.chat_completion(messages=messages, max_tokens=100)
         reply = response.choices[0].message.content.strip()

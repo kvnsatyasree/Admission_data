@@ -40,6 +40,7 @@
                 <span>Time: </span><strong style="color: #fcd34d;">{{ winner['time_taken'] }} sec</strong>
             </p>
             <form method="POST" action="{{ url_for('trigger_eval_manual') }}" style="margin-top: 1.5rem;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <button type="submit" class="btn btn-secondary" style="border-color: #f59e0b;">Re-Trigger AI Evaluation</button>
             </form>
         {% else %}
@@ -74,6 +75,7 @@
             Send a test Congratulatory Email to verify the setup is working.
         </p>
         <form method="POST" action="{{ url_for('send_test_notifications') }}" style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: flex-end;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div style="flex: 1; min-width: 200px;">
                 <label style="display:block; font-size:0.82rem; color:#94a3b8; margin-bottom:0.4rem;">👤 Student Name</label>
                 <input type="text" name="test_name" placeholder="e.g. Test Student" value="Test Student" required

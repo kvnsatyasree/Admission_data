@@ -1,12 +1,24 @@
-import json
 import os
-import datetime
-import libsql as libsql
+import sqlite3
+from urllib.parse import urlparse
+
+try:
+    import libsql as libsql
+except ImportError:
+    libsql = None
 from dotenv import load_dotenv
 
 load_dotenv()
 
-TURSO_DATABASE_URL = os.getenv('TURSO_DATABASE_URL')
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DEFAULT_SQLITE_PATH = os.path.join(BASE_DIR, "quiz_app.db")
+
+# Prefer DATABASE_URL, fall back to legacy TURSO_DATABASE_URL or local SQLite
+DATABASE_URL = os.getenv("DATABASE_URL") or os.getenv("TURSO_DATABASE_URL")
+if not DATABASE_URL:
+    database_path = os.getenv("DATABASE_PATH", DEFAULT_SQLITE_PATH)
+    DATABASE_URL = f"sqlite:///{database_path}"
+
 TURSO_AUTH_TOKEN = os.getenv('TURSO_AUTH_TOKEN')
 
 class RowWrapper:
@@ -62,19 +74,32 @@ class DictConnectionWrapper:
         self.conn.close()
 
 def get_db_connection():
-    """Connects strictly to the Turso Cloud Database"""
-    if not TURSO_DATABASE_URL:
-        raise ValueError("Error: TURSO_DATABASE_URL is missing in the .env file!")
-        
-    conn_kwargs = {}
-    if TURSO_AUTH_TOKEN:
-        conn_kwargs['auth_token'] = TURSO_AUTH_TOKEN
-        
-    # Connect directly to Turso using libsql
-    conn = libsql.connect(TURSO_DATABASE_URL, **conn_kwargs)
-    
-    # Allows for dictionary-like access to rows
-    return DictConnectionWrapper(conn)
+    """Connect to the configured database (libsql:// for Turso, sqlite:/// for local)."""
+    if DATABASE_URL.startswith("libsql://"):
+        if libsql is None:
+            raise ImportError("libsql is not installed. Install libsql-experimental when using a Turso DATABASE_URL.")
+        conn_kwargs = {}
+        if TURSO_AUTH_TOKEN:
+            conn_kwargs['auth_token'] = TURSO_AUTH_TOKEN
+        conn = libsql.connect(DATABASE_URL, **conn_kwargs)
+        return DictConnectionWrapper(conn)
+
+    if DATABASE_URL.startswith("sqlite"):
+        parsed = urlparse(DATABASE_URL)
+        path = parsed.path or DEFAULT_SQLITE_PATH
+        if path.startswith("//"):
+            # urlparse keeps absolute paths as //absolute; drop one slash
+            path = path[1:]
+        if not path:
+            path = DEFAULT_SQLITE_PATH
+        if not os.path.isabs(path):
+            path = os.path.join(BASE_DIR, path.lstrip('/'))
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        conn = sqlite3.connect(path)
+        conn.row_factory = sqlite3.Row
+        return conn
+
+    raise ValueError(f"Unsupported DATABASE_URL scheme: {DATABASE_URL}")
 
 def init_db():
     conn = get_db_connection()

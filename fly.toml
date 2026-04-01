@@ -3,7 +3,7 @@
 app = "kiet-admin"
 
 [build]
-  dockerfile = "intermediate/Dockerfile"
+  dockerfile = "Dockerfile"
 
 [env]
   PORT = "8080"

@@ -6,6 +6,7 @@
     <p>Staff Access Only</p>
 
     <form method="POST" action="{{ url_for('admin_login') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="form-group">
             <label for="passkey">System Passkey</label>
             <input type="password" id="passkey" name="passkey" required>

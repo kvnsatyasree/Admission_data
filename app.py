@@ -1,4 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash, send_file
+from flask_wtf.csrf import CSRFProtect, generate_csrf
+from werkzeug.security import generate_password_hash, check_password_hash
 import datetime
 import json
 import os
@@ -13,6 +15,11 @@ from threading import Timer
 
 # Load environment variables (like Twilio secrets)
 load_dotenv()
+
+SECRET_KEY = os.getenv("SECRET_KEY") or os.getenv("FLASK_SECRET_KEY")
+ADMIN_PASSKEY = os.getenv("ADMIN_PASSKEY") or os.getenv("ADMIN_PASS")
+RUN_SCHEDULER = os.getenv("RUN_SCHEDULER", "1") == "1"
+SESSION_COOKIE_SECURE = os.getenv("SESSION_COOKIE_SECURE", "0") == "1"
 
 def get_local_ip():
     """Retrieves the local IPv4 address connected to the given wifi network."""
@@ -32,15 +39,31 @@ from ai_quiz import generate_daily_quiz, evaluate_winner
 from notifier import send_winner_notification, send_participation_email
 from export_excel import generate_excel_report
 
+if not SECRET_KEY:
+    raise RuntimeError("SECRET_KEY is required. Set it in your .env file.")
+if not ADMIN_PASSKEY:
+    raise RuntimeError("ADMIN_PASSKEY is required. Set it in your .env file.")
+
 app = Flask(__name__)
-app.secret_key = 'your_secret_key_here'
+app.config.update(
+    SECRET_KEY=SECRET_KEY,
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="Lax",
+    SESSION_COOKIE_SECURE=SESSION_COOKIE_SECURE,
+)
+
+csrf = CSRFProtect(app)
+
+@app.context_processor
+def inject_csrf_token():
+    return dict(csrf_token=lambda: generate_csrf())
 
 # Initialize DB on start (safe to run repeatedly because CREATE TABLE uses IF NOT EXISTS)
 init_db()
 
 # --- Automated Background Tasks ---
 def select_daily_winner_job():
-    """ Runs exactly at 10 PM daily to ask Ollama to evaluate answers and send sms """
+    """ Runs exactly at 10 PM daily to ask the AI (Hugging Face) to evaluate answers and send notifications """
     today = datetime.date.today().isoformat()
     conn = get_db_connection()
     quiz = conn.execute('SELECT * FROM quizzes WHERE date = ?', (today,)).fetchone()
@@ -82,11 +105,12 @@ def select_daily_winner_job():
 # Start Scheduler
 scheduler = BackgroundScheduler()
 # trigger="cron" lets us specific a time to run every day. 22 = 10 PM.
-scheduler.add_job(func=select_daily_winner_job, trigger="cron", hour=22, minute=0)
-scheduler.start()
+if RUN_SCHEDULER:
+    scheduler.add_job(func=select_daily_winner_job, trigger="cron", hour=22, minute=0)
+    scheduler.start()
 
-# Stop scheduler securely when destroying the app
-atexit.register(lambda: scheduler.shutdown())
+    # Stop scheduler securely when destroying the app
+    atexit.register(lambda: scheduler.shutdown())
 
 
 # --- Routes ---
@@ -113,17 +137,17 @@ def generate_qr():
 def register():
     if request.method == 'POST':
         try:
-            name = request.form['name']
-            phone = request.form['phone']
-            father_name = request.form['father_name']
-            father_phone = request.form['father_phone']
-            college_location = request.form['college_location']
-            inter_college = request.form['inter_college']
-            school = request.form['school']
-            eamcet_reg = request.form['eamcet_reg']
-            address = request.form['address']
-            email = request.form['email']
-            password = request.form['password']
+            name = request.form['name'].strip()
+            phone = request.form['phone'].strip()
+            father_name = request.form['father_name'].strip()
+            father_phone = request.form['father_phone'].strip()
+            college_location = request.form['college_location'].strip()
+            inter_college = request.form['inter_college'].strip()
+            school = request.form['school'].strip()
+            eamcet_reg = request.form['eamcet_reg'].strip()
+            address = request.form['address'].strip()
+            email = request.form['email'].strip().lower()
+            password = generate_password_hash(request.form['password'])
 
             conn = get_db_connection()
             conn.execute('''
@@ -145,14 +169,14 @@ def register():
 @app.route('/login', methods=['GET', 'POST'])
 def student_login():
     if request.method == 'POST':
-        email = request.form['email']
+        email = request.form['email'].strip().lower()
         password = request.form['password']
         
         conn = get_db_connection()
-        student = conn.execute('SELECT * FROM students WHERE email = ? AND password = ?', (email, password)).fetchone()
+        student = conn.execute('SELECT * FROM students WHERE email = ?', (email,)).fetchone()
         conn.close()
         
-        if student:
+        if student and check_password_hash(student['password'], password):
             session['student_id'] = student['id']
             session['student_name'] = student['name']
             return redirect(url_for('dashboard'))
@@ -239,7 +263,7 @@ def take_quiz():
 def admin_login():
     if request.method == 'POST':
         passkey = request.form['passkey']
-        if passkey == 'address@2026':
+        if passkey == ADMIN_PASSKEY:
             session['admin_logged_in'] = True
             return redirect(url_for('admin_dashboard'))
         else:

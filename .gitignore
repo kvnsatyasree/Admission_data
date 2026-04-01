@@ -11,6 +11,15 @@ __pycache__/
 
 # 🔹 Environment variables
 .env
+*.env
+intermediate/.env
+
+# 🔹 Local data / exports
+/quiz_app.db
+/student_data.xlsx
+intermediate/quiz_app.db
+intermediate/student_data.xlsx
+*.xlsx
 
 # 🔹 Flask / App files
 instance/

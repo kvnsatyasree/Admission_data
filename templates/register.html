@@ -6,6 +6,7 @@
     <p>Join the Daily Multi-College Student Quiz</p>
 
     <form method="POST" action="{{ url_for('register') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="profile-grid">
             <div class="form-group">
                 <label for="name">Student Name</label>
